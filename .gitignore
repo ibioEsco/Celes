@@ -1,0 +1,7 @@
+venv
+.vscode
+__pycache__
+document/data_chunk000000000000.snappy.parquet
+document/data_chunk000000000001.snappy.parquet
+document/data_chunk000000000002.snappy.parquet
+document/data_chunk000000000003.snappy.parquet
