@@ -165,7 +165,7 @@ async def read_produc(product: str, _: Annotated[User, Depends(get_current_activ
 
 @app.post("/sales/by_store/{store}")
 @log_and_handle_exceptions
-def get_sales_by_product(store: str, _: Annotated[User, Depends(get_current_active_user)]):
+async def get_sales_by_product(store: str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
     employee_retturn = cone.select_fire_store('store_sales','Stores','Store',store)
     return employee_retturn
@@ -173,7 +173,7 @@ def get_sales_by_product(store: str, _: Annotated[User, Depends(get_current_acti
 
 @app.post("/sales/total_avg_by_employee/{avg_employee}")
 @log_and_handle_exceptions
-def get_sales_by_product(avg_employee: str, _: Annotated[User, Depends(get_current_active_user)]):
+async def get_sales_by_product(avg_employee: str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
     employee_retturn = cone.select_fire_store_average_sales('promedio_employee_sales','Employees','Employee',avg_employee)
     return employee_retturn
@@ -182,7 +182,7 @@ def get_sales_by_product(avg_employee: str, _: Annotated[User, Depends(get_curre
 
 @app.post("/sales/total_avg_by_product/{avg_produc}")
 @log_and_handle_exceptions
-def get_sales_by_product(avg_produc: str, _: Annotated[User, Depends(get_current_active_user)]):
+async def get_sales_by_product(avg_produc: str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
     employee_retturn = cone.select_fire_store_average_sales('promedio_products_sales','Products','Product',avg_produc)
     return employee_retturn
@@ -190,9 +190,9 @@ def get_sales_by_product(avg_produc: str, _: Annotated[User, Depends(get_current
 
 @app.post("/sales/total_avg_by_store/{avg_store}")
 @log_and_handle_exceptions
-def get_sales_by_product(avg_produc :str, _: Annotated[User, Depends(get_current_active_user)]):
+async def get_sales_by_product(avg_store :str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
-    employee_retturn = cone.select_fire_store_average_sales('promedio_store_sales','Stores','Store',avg_produc)
+    employee_retturn = cone.select_fire_store_average_sales('promedio_store_sales','Stores','Store',avg_store)
     return employee_retturn
 
 
