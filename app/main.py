@@ -135,13 +135,36 @@ async def read_employee(employee : str, _: Annotated[User, Depends(get_current_a
 @app.post("/sales/by_product/{product}")
 async def read_produc(product : str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
-    employee_retturn = cone.select_fire_store('roduct_sales','Products','Product',product)
+    employee_retturn = cone.select_fire_store('product_sales','Products','Product',product)
     return employee_retturn
 
 
 @app.post("/sales/by_store/{store}")
 def get_sales_by_product(store :str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
-    employee_retturn = cone.select_fire_store('roduct_sales','Stores','Store',store)
+    employee_retturn = cone.select_fire_store('store_sales','Stores','Store',store)
 
     return employee_retturn
+
+@app.post("/sales/total_avg_by_employee/{avg_employee}")
+def get_sales_by_product(avg_employee :str, _: Annotated[User, Depends(get_current_active_user)]):
+    cone = Connection()
+    employee_retturn = cone.select_fire_store_average_sales('promedio_employee_sales','Employees','Employee',avg_employee)
+
+    return employee_retturn
+
+@app.post("/sales/total_avg_by_product/{avg_produc}")
+def get_sales_by_product(avg_produc :str, _: Annotated[User, Depends(get_current_active_user)]):
+    cone = Connection()
+    employee_retturn = cone.select_fire_store_average_sales('promedio_products_sales','Products','Product',avg_produc)
+
+    return employee_retturn
+
+@app.post("/sales/total_avg_by_store/{avg_store}")
+def get_sales_by_product(avg_produc :str, _: Annotated[User, Depends(get_current_active_user)]):
+    cone = Connection()
+    employee_retturn = cone.select_fire_store_average_sales('promedio_store_sales','Stores','Store',avg_produc)
+
+    return employee_retturn
+
+
