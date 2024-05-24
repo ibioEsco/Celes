@@ -7,9 +7,9 @@ class document:
     def consolidar_archivos_parquet(self):
         
         archivos_parquet = ['/home/ibio/Documentos/Celes/document/data_chunk000000000000.snappy.parquet',
-                                '/home/ibio/Documentos/Celes/document/data_chunk000000000001.snappy.parquet',
-                                '/home/ibio/Documentos/Celes/document/data_chunk000000000002.snappy.parquet',
-                                '/home/ibio/Documentos/Celes/document/data_chunk000000000003.snappy.parquet']
+                            '/home/ibio/Documentos/Celes/document/data_chunk000000000001.snappy.parquet',
+                            '/home/ibio/Documentos/Celes/document/data_chunk000000000002.snappy.parquet',
+                            '/home/ibio/Documentos/Celes/document/data_chunk000000000004.snappy.parquet']
         dfs = []
         for archivo in archivos_parquet:
             df = pq.read_table(archivo).to_pandas()
@@ -40,23 +40,22 @@ class document:
 
            
     def consultar_el_promedio(self,df_consolidado):
-        df_ventastienda = df_consolidado.groupby('KeyProduct')['Amount'].agg(TotalSales='sum', AverageSales='mean').reset_index()
-        df_tienda = pd.merge(df_ventastienda, df_consolidado[['KeyProduct', 'Products']], on='KeyProduct', how='left')
-        df_empleado = df_tienda.drop_duplicates(subset=['KeyProduct'])
+        df_ventastienda = df_consolidado.groupby('KeyStore')['Amount'].agg(TotalSales='sum', AverageSales='mean').reset_index()
+        df_tienda = pd.merge(df_ventastienda, df_consolidado[['KeyStore', 'Stores']], on='KeyStore', how='left')
+        df_empleado = df_tienda.drop_duplicates(subset=['KeyStore'])
         for _, row in df_empleado.iterrows():
            doc_data = {
-           'KeyProduct': row['KeyProduct'],
-           "TotalSales": row["TotalSales"],
+           'KeyStore': row['KeyStore'],
+          "TotalSales": row["TotalSales"],
            "AverageSales": row["AverageSales"],
-           "Products": str(row["Products"]),
+           "Stores": row["Stores"],
            }
-				
-
 
 
 
 if __name__ == "__main__":
+    
     do = document()
     df_consolidado = do.consolidar_archivos_parquet()
-    periodo_ventas = do.consultar_las_ventas_de_un_periodo(df_consolidado,'KeyStore')
+    periodo_ventas = do.consultar_las_ventas_de_un_periodo(df_consolidado,'KeyProduct')
     promedio = do.consultar_el_promedio(df_consolidado)
