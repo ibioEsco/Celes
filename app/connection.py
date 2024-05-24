@@ -33,10 +33,28 @@ class Connection:
                 return data
     
 
-        
-        
-        
-        
+    def select_fire_store_average_sales(self, name_collection,obje_name,fich_name,name):
+        db = self.db
+        collection_name = name_collection
+        docs = db.collection(collection_name).stream()
+        for doc in docs:
+            data = doc.to_dict()  
+            employee_details = data.get(obje_name, {})
+            employee_name = employee_details.get(fich_name+"Name") 
+            if employee_name == name:
+                data = {
+                    'Nombre':name,
+                    'venta_promedio':data['AverageSales'],
+                    'venta_totales':data['TotalSales'],
+                }
+                print(f"Documento ID: {doc.id}")  
+                print(f"Datos: {data}")  
+                print(f"Nombre del Empleado: {employee_name}") 
+                return data
+
+
 if __name__ == "__main__":
     co = Connection()
     co.select_fire_store('keyStore_sales','Stores','Store','CENTRO')
+    co.select_fire_store_average_sales('promedio_products_sales','Products','Product','VITAMINA C 1000MG 100 CAPS HEALTHY')
+    
