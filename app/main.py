@@ -1,18 +1,15 @@
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
-
 import jwt
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel
-
-# to get a string like this run:
-# openssl rand -hex 32
+from .connection import Connection
 SECRET_KEY = "dbab42abae14dacc4687afd7f1192d87039e31bebb668068ddf3d37b7c6283ad"
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 2
 
 
 fake_users_db = {
@@ -88,7 +85,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     return encoded_jwt
 
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+
+async def get_current_active_user(token: Annotated[str, Depends(oauth2_scheme)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -99,22 +97,14 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
     except InvalidTokenError:
         raise credentials_exception
-    user = get_user(fake_users_db, username=token_data.username)
-    if user is None:
-        raise credentials_exception
-    return user
+    return username
 
 
-async def get_current_active_user(
-    current_user: Annotated[User, Depends(get_current_user)],
-):
-    if current_user.disabled:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
+@app.get("/")
+def read_root():
+    return {"message": "Bienvenido al microservicio de consultas"}
 
 @app.post("/token")
 async def login_for_access_token(
@@ -134,15 +124,24 @@ async def login_for_access_token(
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/users/me/", response_model=User)
-async def read_users_me(
-    current_user: Annotated[User, Depends(get_current_active_user)],
-):
-    return current_user
+@app.post("/sales/by_employee/{employee}")
+async def read_employee(employee : str, _: Annotated[User, Depends(get_current_active_user)]):
+
+    cone = Connection()
+    employee_retturn = cone.select_fire_store('employee_sales','Employees','Employee',employee)
+    return employee_retturn
 
 
-@app.get("/users/me/items/")
-async def read_own_items(
-    current_user: Annotated[User, Depends(get_current_active_user)],
-):
-    return [{"item_id": "Foo", "owner": current_user.username}]
+@app.post("/sales/by_product/{product}")
+async def read_produc(product : str, _: Annotated[User, Depends(get_current_active_user)]):
+    cone = Connection()
+    employee_retturn = cone.select_fire_store('roduct_sales','Products','Product',product)
+    return employee_retturn
+
+
+@app.post("/sales/by_store/{store}")
+def get_sales_by_product(store :str, _: Annotated[User, Depends(get_current_active_user)]):
+    cone = Connection()
+    employee_retturn = cone.select_fire_store('roduct_sales','Stores','Store',store)
+
+    return employee_retturn
