@@ -7,6 +7,11 @@ from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from .connection import Connection
+import logging
+from functools import wraps
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 SECRET_KEY = "dbab42abae14dacc4687afd7f1192d87039e31bebb668068ddf3d37b7c6283ad"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 2
@@ -49,6 +54,24 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI()
 
+
+
+
+
+def log_and_handle_exceptions(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            result = await func(*args, **kwargs)
+            logger.info(f"Success: {func.__name__} with args: {args} kwargs: {kwargs}")
+            return result
+        except Exception as ex:
+            logger.error(f"Error in {func.__name__}: {str(ex)}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Error: {str(ex)}"
+            )
+    return wrapper
 
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
@@ -125,46 +148,51 @@ async def login_for_access_token(
 
 
 @app.post("/sales/by_employee/{employee}")
-async def read_employee(employee : str, _: Annotated[User, Depends(get_current_active_user)]):
-
+@log_and_handle_exceptions
+async def read_employee(employee: str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
-    employee_retturn = cone.select_fire_store('employee_sales','Employees','Employee',employee)
-    return employee_retturn
+    return cone.select_fire_store('employee_sales', 'Employees', 'Employee', employee)
 
 
 @app.post("/sales/by_product/{product}")
-async def read_produc(product : str, _: Annotated[User, Depends(get_current_active_user)]):
+@log_and_handle_exceptions
+async def read_produc(product: str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
     employee_retturn = cone.select_fire_store('product_sales','Products','Product',product)
     return employee_retturn
 
+    
 
 @app.post("/sales/by_store/{store}")
-def get_sales_by_product(store :str, _: Annotated[User, Depends(get_current_active_user)]):
+@log_and_handle_exceptions
+def get_sales_by_product(store: str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
     employee_retturn = cone.select_fire_store('store_sales','Stores','Store',store)
-
     return employee_retturn
+
 
 @app.post("/sales/total_avg_by_employee/{avg_employee}")
-def get_sales_by_product(avg_employee :str, _: Annotated[User, Depends(get_current_active_user)]):
+@log_and_handle_exceptions
+def get_sales_by_product(avg_employee: str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
     employee_retturn = cone.select_fire_store_average_sales('promedio_employee_sales','Employees','Employee',avg_employee)
-
     return employee_retturn
+
+
 
 @app.post("/sales/total_avg_by_product/{avg_produc}")
-def get_sales_by_product(avg_produc :str, _: Annotated[User, Depends(get_current_active_user)]):
+@log_and_handle_exceptions
+def get_sales_by_product(avg_produc: str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
     employee_retturn = cone.select_fire_store_average_sales('promedio_products_sales','Products','Product',avg_produc)
-
     return employee_retturn
 
+
 @app.post("/sales/total_avg_by_store/{avg_store}")
+@log_and_handle_exceptions
 def get_sales_by_product(avg_produc :str, _: Annotated[User, Depends(get_current_active_user)]):
     cone = Connection()
     employee_retturn = cone.select_fire_store_average_sales('promedio_store_sales','Stores','Store',avg_produc)
-
     return employee_retturn
 
 
