@@ -17,24 +17,12 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 2
 
 
-fake_users_db = {
-    "ibio": {
-        "username": "ibio",
-        "full_name": "John Doe",
-        "email": "johndoe@example.com",
-        "hashed_password": "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW",
-        "disabled": False,
-    }
-}
 
 
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-
-class TokenData(BaseModel):
-    username: str | None = None
 
 
 class User(BaseModel):
@@ -43,9 +31,6 @@ class User(BaseModel):
     full_name: str | None = None
     disabled: bool | None = None
 
-
-class UserInDB(User):
-    hashed_password: str
 
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -73,25 +58,13 @@ def log_and_handle_exceptions(func):
             )
     return wrapper
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
 
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
 
-
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
-
-
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(username: str, password: str):
+    cone = Connection()
+    user = cone.user_fire(username,password)
     if not user:
-        return False
-    if not verify_password(password, user.hashed_password):
         return False
     return user
 
@@ -133,7 +106,7 @@ def read_root():
 async def login_for_access_token(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ) -> Token:
-    user = authenticate_user(fake_users_db, form_data.username, form_data.password)
+    user = authenticate_user(form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -142,7 +115,7 @@ async def login_for_access_token(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": form_data.username}, expires_delta=access_token_expires
     )
     return Token(access_token=access_token, token_type="bearer")
 

@@ -19,7 +19,7 @@ class Connection:
         for doc in docs:
             data = doc.to_dict()  
             employee_details = data.get(obje_name, {})  
-            employee_name = employee_details.get(fich_name+"Name") 
+            employee_name = employee_details.get(fich_name+'Name') 
             if employee_name == name:
                 data = {
                     'Nombre':name,
@@ -40,7 +40,7 @@ class Connection:
         for doc in docs:
             data = doc.to_dict()  
             employee_details = data.get(obje_name, {})
-            employee_name = employee_details.get(fich_name+"Name") 
+            employee_name = employee_details.get(fich_name+'Name') 
             if employee_name == name:
                 data = {
                     'Nombre':name,
@@ -52,9 +52,23 @@ class Connection:
                 print(f"Nombre del Empleado: {employee_name}") 
                 return data
 
+    def user_fire(self, username , password):
+        db = self.db
+        collection_name=  db.collection('user')
+        query = collection_name.where('user', '==', username).where('pass', '==', password)
+        results = query.stream()
+        for doc in results:
+            print(f'Document ID: {doc.id}')
+            print(f'Data: {doc.to_dict()}')
+            if doc:
+                return True
+        return False
+
+        
 
 if __name__ == "__main__":
     co = Connection()
     co.select_fire_store('keyStore_sales','Stores','Store','CENTRO')
     co.select_fire_store_average_sales('promedio_products_sales','Products','Product','VITAMINA C 1000MG 100 CAPS HEALTHY')
+    co.user_fire('aa','admin')
     
